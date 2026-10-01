@@ -64,15 +64,34 @@ test('GET /api/users returns a requested page and pagination metadata', async ()
     });
 
     assert.equal(response.statusCode, 200);
-    assert.deepEqual(response.json(), {
-      users: [{ user_id: 'user-3' }, { user_id: 'user-4' }],
+    const body = response.json() as {
+      users: { user_id: string }[];
       pagination: {
-        page: 2,
-        limit: 2,
-        totalUsers: 5,
-        totalPages: 3,
-      },
+        page: number;
+        limit: number;
+        totalUsers: number;
+        totalPages: number;
+      };
+      timingsMs: Record<string, number>;
+    };
+    assert.deepEqual(body.users, [{ user_id: 'user-3' }, { user_id: 'user-4' }]);
+    assert.deepEqual(body.pagination, {
+      page: 2,
+      limit: 2,
+      totalUsers: 5,
+      totalPages: 3,
     });
+    assert.deepEqual(Object.keys(body.timingsMs).sort(), [
+      'databaseConnection',
+      'mongoCountQuery',
+      'mongoUserQuery',
+      'total',
+    ]);
+    for (const duration of Object.values(body.timingsMs)) {
+      assert.equal(typeof duration, 'number');
+      assert.ok(duration >= 0);
+    }
+    assert.match(String(response.headers['server-timing'] ?? ''), /mongo-users;dur=/);
     assert.equal(connected, true);
   } finally {
     await app.close();
