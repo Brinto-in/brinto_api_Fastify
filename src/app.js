@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { registerUserRoutes } from './routes/users.js';
 
 export function buildApp() {
   const app = Fastify({
@@ -16,6 +17,8 @@ export function buildApp() {
     message: 'Hello from Fastify on Vercel!',
     name: request.query.name ?? 'world',
   }));
+
+  registerUserRoutes(app);
 
   return app;
 }
