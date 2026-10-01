@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose, { type Connection } from 'mongoose';
 
-let connectionPromise;
+let connectionPromise: Promise<Connection> | undefined;
 
-export async function connectDb() {
+export async function connectDb(): Promise<Connection> {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
@@ -16,7 +16,7 @@ export async function connectDb() {
   if (!connectionPromise) {
     connectionPromise = mongoose.connect(uri, {
       ...(process.env.MONGODB_DB ? { dbName: process.env.MONGODB_DB } : {}),
-    }).then(() => mongoose.connection).catch((error) => {
+    }).then(() => mongoose.connection).catch((error: unknown) => {
       connectionPromise = undefined;
       throw error;
     });

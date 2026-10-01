@@ -1,11 +1,25 @@
+import type { FastifyInstance } from 'fastify';
 import User from '../../model/user.js';
 import { connectDb } from '../db.js';
 
-export function registerUserRoutes(app, {
-  UserModel = User,
-  connectToDatabase = connectDb,
-} = {}) {
-  app.get('/api/users', {
+interface PaginationQuery {
+  page: number;
+  limit: number;
+}
+
+interface UserRouteDependencies {
+  UserModel?: typeof User;
+  connectToDatabase?: () => Promise<unknown>;
+}
+
+export function registerUserRoutes(
+  app: FastifyInstance,
+  {
+    UserModel = User,
+    connectToDatabase = connectDb,
+  }: UserRouteDependencies = {},
+): void {
+  app.get<{ Querystring: PaginationQuery }>('/api/users', {
     schema: {
       querystring: {
         type: 'object',

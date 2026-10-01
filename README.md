@@ -1,7 +1,7 @@
 # Fastify API on Vercel
 
-A small Fastify API that runs locally as a Node.js server and deploys to Vercel
-as a serverless function.
+A TypeScript Fastify API that runs locally as a Node.js server and deploys to
+Vercel as a serverless function.
 
 ## Requirements
 
@@ -23,10 +23,10 @@ otherwise the database in the connection string is used.
 
 ## MongoDB
 
-The shared Mongoose connection helper in `src/db.js` reuses its connection across
-requests. The user model is in `model/user.js`. Connect before using a model:
+The shared Mongoose connection helper in `src/db.ts` reuses its connection across
+requests. The user model is in `model/user.ts`. Connect before using a model:
 
-```js
+```ts
 import { connectDb } from '../src/db.js';
 import User from '../model/user.js';
 
@@ -48,7 +48,7 @@ source code.
 ## Deploy to Vercel
 
 Import this repository in Vercel or run `npx vercel` from the project
-directory. Vercel discovers the catch-all function in `api/[...path].js`; the
+directory. Vercel discovers the catch-all function in `api/[...path].ts`; the
 API routes are available under `/api`. Configure the MongoDB environment
 variables in Vercel before calling database-backed routes.
 

@@ -1,9 +1,32 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, type Model } from 'mongoose';
 
 const modelName = 'users';
 
-const usersSchema = new Schema({
+export type LoginPlatform = 'web' | 'ios' | 'android' | 'other';
+export type UserRole = 'USER' | 'ADMIN' | 'STORE_OWNER';
+export type UserStatus = 1 | 2 | 3;
+
+export interface IUser {
+  name?: string;
+  phone: string;
+  email: string;
+  password: string;
+  dob?: Date;
+  role: UserRole[];
+  user_id: string;
+  user_name: string;
+  status: UserStatus;
+  login_platform?: LoginPlatform;
+}
+
+interface UserMethods {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+type UsersModel = Model<IUser, Record<string, never>, UserMethods>;
+
+const usersSchema = new Schema<IUser, UsersModel, UserMethods>({
   name: { type: String },
   user_name: { type: String, unique: true, required: true },
   phone: { type: String, required: true, unique: true },
@@ -43,18 +66,19 @@ usersSchema.pre('save', async function () {
 usersSchema.pre('findOneAndUpdate', async function () {
   const update = this.getUpdate();
 
-  if (!update) {
+  if (!update || Array.isArray(update)) {
     return;
   }
 
-  const password = update.$set?.password ?? update.password;
-  if (typeof password === 'string') {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const updateFields = update as Record<string, unknown>;
+  const setFields = updateFields.$set as Record<string, unknown> | undefined;
+  const password = setFields?.password ?? updateFields.password;
 
-    if (update.$set?.password !== undefined) {
-      update.$set.password = hashedPassword;
+  if (typeof password === 'string') {
+    if (setFields) {
+      setFields.password = await bcrypt.hash(password, 10);
     } else {
-      update.password = hashedPassword;
+      updateFields.password = await bcrypt.hash(password, 10);
     }
 
     this.setUpdate(update);
@@ -65,7 +89,7 @@ usersSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-const usersModel = mongoose.models[modelName]
-  || mongoose.model(modelName, usersSchema);
+const usersModel = (mongoose.models[modelName] as UsersModel | undefined)
+  ?? mongoose.model<IUser, UsersModel>(modelName, usersSchema);
 
 export default usersModel;

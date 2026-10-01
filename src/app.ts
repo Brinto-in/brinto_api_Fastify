@@ -13,7 +13,7 @@ export function buildApp() {
 
   app.get('/api/health', async () => ({ status: 'ok' }));
 
-  app.get('/api/hello', async (request) => ({
+  app.get<{ Querystring: { name?: string } }>('/api/hello', async (request) => ({
     message: 'Hello from Fastify on Vercel!',
     name: request.query.name ?? 'world',
   }));

@@ -1,26 +1,27 @@
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import test from 'node:test';
+import User from '../model/user.js';
 import { registerUserRoutes } from '../src/routes/users.js';
 
-function createUserQuery(users) {
+function createUserQuery(users: { user_id: string }[]) {
   let offset = 0;
   let limit = 10;
 
   const query = {
-    select(fields) {
+    select(fields: string) {
       assert.equal(fields, '-password');
       return query;
     },
-    sort(fields) {
+    sort(fields: { createdAt: number }) {
       assert.deepEqual(fields, { createdAt: -1 });
       return query;
     },
-    skip(value) {
+    skip(value: number) {
       offset = value;
       return query;
     },
-    limit(value) {
+    limit(value: number) {
       limit = value;
       return query;
     },
@@ -43,13 +44,16 @@ test('GET /api/users returns a requested page and pagination metadata', async ()
   ];
   let connected = false;
 
+  const userModel = {
+    find: () => createUserQuery(users),
+    countDocuments: async () => users.length,
+  } as unknown as typeof User;
+
   registerUserRoutes(app, {
-    UserModel: {
-      find: () => createUserQuery(users),
-      countDocuments: async () => users.length,
-    },
+    UserModel: userModel,
     connectToDatabase: async () => {
       connected = true;
+      return undefined;
     },
   });
 
@@ -80,9 +84,10 @@ test('GET /api/users rejects invalid pagination parameters', async () => {
   let connected = false;
 
   registerUserRoutes(app, {
-    UserModel: {},
+    UserModel: {} as typeof User,
     connectToDatabase: async () => {
       connected = true;
+      return undefined;
     },
   });
 
