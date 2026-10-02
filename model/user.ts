@@ -57,6 +57,8 @@ const usersSchema = new Schema<IUser, UsersModel, UserMethods>({
   toJSON: { virtuals: true },
 });
 
+usersSchema.index({ createdAt: -1, _id: -1 });
+
 usersSchema.pre('save', async function () {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);

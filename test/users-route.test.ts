@@ -13,8 +13,8 @@ function createUserQuery(users: { user_id: string }[]) {
       assert.equal(fields, '-password');
       return query;
     },
-    sort(fields: { createdAt: number }) {
-      assert.deepEqual(fields, { createdAt: -1 });
+    sort(fields: { createdAt: number; _id: number }) {
+      assert.deepEqual(fields, { createdAt: -1, _id: -1 });
       return query;
     },
     skip(value: number) {

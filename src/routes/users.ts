@@ -50,7 +50,7 @@ export function registerUserRoutes(
 
     const userQuery = await measure(() => UserModel.find()
       .select('-password')
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip(offset)
       .limit(limit + 1)
       .lean());

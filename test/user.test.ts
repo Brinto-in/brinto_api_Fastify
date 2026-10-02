@@ -17,6 +17,14 @@ test('user model applies defaults and validates required fields', async () => {
   await assert.doesNotReject(user.validate());
 });
 
+test('user model indexes the paginated sort fields', () => {
+  const hasPaginationIndex = User.schema.indexes().some(([fields]) =>
+    fields.createdAt === -1 && fields._id === -1,
+  );
+
+  assert.equal(hasPaginationIndex, true);
+});
+
 test('comparePassword checks a hashed password', async () => {
   const password = 'correct-password';
   const user = new User({
