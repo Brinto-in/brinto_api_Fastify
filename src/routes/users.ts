@@ -48,37 +48,33 @@ export function registerUserRoutes(
 
     const { durationMs: databaseConnectionMs } = await measure(connectToDatabase);
 
-    const [userQuery, countQuery] = await Promise.all([
-      measure(() => UserModel.find()
-        .select('-password')
-        .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit)
-        .lean()),
-      measure(() => UserModel.countDocuments()),
-    ]);
+    const userQuery = await measure(() => UserModel.find()
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .lean());
+    const hasNextPage = userQuery.value.length > limit;
+    const users = userQuery.value.slice(0, limit);
     const totalMs = Number((performance.now() - startedAt).toFixed(2));
     const timingsMs = {
       databaseConnection: databaseConnectionMs,
       mongoUserQuery: userQuery.durationMs,
-      mongoCountQuery: countQuery.durationMs,
       total: totalMs,
     };
 
     reply.header('Server-Timing', [
       `db-connect;dur=${timingsMs.databaseConnection}`,
       `mongo-users;dur=${timingsMs.mongoUserQuery}`,
-      `mongo-count;dur=${timingsMs.mongoCountQuery}`,
       `total;dur=${timingsMs.total}`,
     ].join(', '));
 
     return {
-      users: userQuery.value,
+      users,
       pagination: {
         page,
         limit,
-        totalUsers: countQuery.value,
-        totalPages: Math.ceil(countQuery.value / limit),
+        hasNextPage,
       },
       timingsMs,
     };

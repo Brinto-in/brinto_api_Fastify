@@ -43,7 +43,7 @@ source code.
 - `GET /` returns the app name and status when running locally.
 - `GET /api/health` returns `{ "status": "ok" }`.
 - `GET /api/hello?name=Vercel` returns a greeting.
-- `GET /api/users?page=1&limit=10` returns a paginated user list without passwords, with database timings in `timingsMs` and the `Server-Timing` header.
+- `GET /api/users?page=1&limit=10` returns a paginated user list without passwords, a `hasNextPage` flag, and timings in `timingsMs` and the `Server-Timing` header. It does not run a total-count query.
 
 ## Deploy to Vercel
 

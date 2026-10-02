@@ -46,7 +46,6 @@ test('GET /api/users returns a requested page and pagination metadata', async ()
 
   const userModel = {
     find: () => createUserQuery(users),
-    countDocuments: async () => users.length,
   } as unknown as typeof User;
 
   registerUserRoutes(app, {
@@ -69,8 +68,7 @@ test('GET /api/users returns a requested page and pagination metadata', async ()
       pagination: {
         page: number;
         limit: number;
-        totalUsers: number;
-        totalPages: number;
+        hasNextPage: boolean;
       };
       timingsMs: Record<string, number>;
     };
@@ -78,12 +76,10 @@ test('GET /api/users returns a requested page and pagination metadata', async ()
     assert.deepEqual(body.pagination, {
       page: 2,
       limit: 2,
-      totalUsers: 5,
-      totalPages: 3,
+      hasNextPage: true,
     });
     assert.deepEqual(Object.keys(body.timingsMs).sort(), [
       'databaseConnection',
-      'mongoCountQuery',
       'mongoUserQuery',
       'total',
     ]);
